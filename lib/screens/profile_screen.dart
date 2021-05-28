@@ -1,48 +1,351 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:instagram_redesign/data.dart';
+import 'package:instagram_redesign/model/current_user.dart';
+import 'package:instagram_redesign/model/post.dart';
+import 'package:instagram_redesign/model/user.dart' as UserModel;
+import 'package:instagram_redesign/services/auth_services.dart';
+import 'package:instagram_redesign/services/database_services.dart';
 import 'package:instagram_redesign/widgets/profile_container.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
+  static const routeName = '/profile_screen';
+  final String currentUserId;
+  final String userId;
+
+  const ProfileScreen({this.currentUserId, this.userId});
+
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen>
-    with SingleTickerProviderStateMixin {
+class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProviderStateMixin {
   TabController _tabController;
+  UserModel.User _user;
+  bool _isFollowing = false;
+  int _followersCount = 0;
+  int _followingCount = 0;
+  List<Post> _userPosts = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _setupFollowingCount();
+    _setupFollowersCount();
+    if (widget.userId != widget.currentUserId) {
+      _setupIsFollowing();
+    }
+    _setupUserPosts();
+    _fetchUserFromDoc();
+    // _test();
+  }
+
+  void _fetchUserFromDoc() async {
+    UserModel.User user = await DatabaseServices.fetchUser(widget.userId);
+    setState(() {
+      _user = user;
+    });
+  }
+
+  void _setupIsFollowing() async {
+    bool isFollowing = await DatabaseServices.isFollowing(
+      currentUserId: widget.currentUserId,
+      userId: widget.userId,
+    );
+
+    setState(() {
+      _isFollowing = isFollowing;
+    });
+  }
+
+  void _setupFollowingCount() async {
+    int followingCount = await DatabaseServices.followingCount(userId: widget.userId);
+
+    setState(() {
+      _followingCount = followingCount;
+    });
+  }
+
+  void _setupFollowersCount() async {
+    int followersCount = await DatabaseServices.followersCount(userId: widget.userId);
+
+    setState(() {
+      _followersCount = followersCount;
+    });
+  }
+
+  void _setupUserPosts() async {
+    final List<Post> posts = await DatabaseServices.fetchUserPosts(userId: widget.userId);
+    setState(() {
+      _userPosts = posts;
+    });
+  }
+
+  void _followOrUnfollow() {
+    if (_isFollowing) {
+      _unfollowUser();
+    } else {
+      _followUser();
+    }
+  }
+
+  void _followUser() async {
+    DatabaseServices.followUser(
+      context: context,
+      currentUserId: widget.currentUserId,
+      userId: widget.userId,
+    );
+
+    setState(() {
+      _isFollowing = true;
+      _followersCount++;
+    });
+  }
+
+  void _unfollowUser() {
+    DatabaseServices.unfollowUser(
+      context: context,
+      currentUserId: widget.currentUserId,
+      userId: widget.userId,
+    );
+    setState(() {
+      _isFollowing = false;
+      _followersCount--;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: NestedScrollView(
-        headerSliverBuilder: (ctx, _) {
-          return [
-            // ProfileAppBar(),
-            profileHeader(),
-            editProfileButton(),
-          ];
-        },
-        body: ProfileFooter(tabController: _tabController),
+    if (_user == null) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    } else {
+      return Scaffold(
+        backgroundColor: Color(0xfffffefe),
+        appBar: AppBar(
+          backgroundColor: Color(0xfffffefe),
+          elevation: 0.5,
+          title: Row(
+            children: [
+              Icon(
+                Icons.lock_outline_rounded,
+                color: Color(0xff262626),
+              ),
+              SizedBox(width: 2),
+              Text(
+                _user.userName,
+                textScaleFactor: 1,
+                style: TextStyle(
+                  color: Color(0xff262626),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Icon(
+                Icons.expand_more_outlined,
+                color: Color(0xff262626),
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(
+                Icons.exit_to_app,
+                color: Color(
+                  0xff262626,
+                ),
+              ),
+              visualDensity: VisualDensity.compact,
+              splashRadius: 20,
+              onPressed: () {
+                AuthServices.logout();
+              },
+            ),
+            SizedBox(width: 8),
+          ],
+        ),
+        body: SafeArea(
+          child: NestedScrollView(
+            headerSliverBuilder: (ctx, _) {
+              return [
+                profileHeader(),
+                editProfileButton(context: context),
+              ];
+            },
+            body: postGrid(),
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget profileHeader() {
+    return SliverToBoxAdapter(
+      child: Container(
+        color: Color(0xfffffefe),
+        padding: const EdgeInsets.only(left: 20, right: 20, top: 14),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Column(
+              children: [
+                ProfileContainer(
+                  user: _user,
+                  radius: 40,
+                  hasUserStory: false,
+                ),
+                SizedBox(height: 4),
+                Text(
+                  _user.userName,
+                  textScaleFactor: 1,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xff262626),
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              children: [
+                Text(
+                  '${_userPosts.length}',
+                  textScaleFactor: 1,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xff262626),
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Posts',
+                  textScaleFactor: 1,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xff262626),
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              children: [
+                Text(
+                  '$_followersCount',
+                  textScaleFactor: 1,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xff262626),
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Followers',
+                  textScaleFactor: 1,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xff262626),
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              children: [
+                Text(
+                  '$_followingCount',
+                  textScaleFactor: 1,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xff262626),
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Following',
+                  textScaleFactor: 1,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xff262626),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
-}
 
-class ProfileFooter extends StatelessWidget {
-  final TabController tabController;
+  void _editProfile() {}
 
-  const ProfileFooter({this.tabController});
+  Widget editProfileButton({BuildContext context}) {
+    final currentUserId = Provider.of<CurrentUser>(context).currentUserId;
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      sliver: SliverToBoxAdapter(
+        child: _user.userId == currentUserId
+            ? ElevatedButton(
+                onPressed: _editProfile,
+                style: ElevatedButton.styleFrom(
+                  onPrimary: Color(0xff262626),
+                  primary: Color(0xfffffefe),
+                  elevation: 0,
+                  alignment: Alignment.center,
+                  side: BorderSide(
+                    color: Color(0xffdcdcdc),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                child: Text(
+                  'Edit Profile',
+                  textScaleFactor: 1,
+                  style: Theme.of(context).textTheme.button.copyWith(
+                        color: Color(0xff262626),
+                      ),
+                ),
+              )
+            : ElevatedButton(
+                onPressed: _followOrUnfollow,
+                style: ElevatedButton.styleFrom(
+                  onPrimary: _isFollowing ? Color(0xff262626) : Colors.white,
+                  primary: _isFollowing ? Color(0xfffffefe) : Colors.blue,
+                  elevation: 0,
+                  alignment: Alignment.center,
+                  side: _isFollowing
+                      ? BorderSide(
+                          color: Color(0xffdcdcdc),
+                        )
+                      : BorderSide.none,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                child: Text(
+                  _isFollowing ? 'Unfollow' : 'Follow',
+                  textScaleFactor: 1,
+                  style: Theme.of(context).textTheme.button.copyWith(
+                        color: _isFollowing ? Color(0xff262626) : Colors.white,
+                      ),
+                ),
+              ),
+      ),
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget postGrid() {
+    final Color selectedTabColor = Color(0xff262626);
+    final Color unSelectedTabColor = Color(0xff999999);
+
     return Column(
       children: [
         SizedBox(
@@ -52,15 +355,18 @@ class ProfileFooter extends StatelessWidget {
             shape: Border(
               bottom: BorderSide(color: Colors.grey, width: 0.4),
             ),
-            backgroundColor: Colors.white,
+            backgroundColor: Color(0xfffffefe),
             bottom: TabBar(
-              controller: tabController,
+              onTap: (index) {
+                setState(() {});
+              },
+              controller: _tabController,
               indicatorColor: Colors.black,
               tabs: [
                 Tab(
                   icon: Icon(
                     Icons.table_chart_outlined,
-                    color: Colors.black,
+                    color: _tabController.index == 0 ? selectedTabColor : unSelectedTabColor,
                   ),
                 ),
                 Tab(
@@ -68,7 +374,7 @@ class ProfileFooter extends StatelessWidget {
                     'assets/images/instagram-reels.png',
                     width: 22,
                     height: 22,
-                    color: Colors.black,
+                    color: _tabController.index == 1 ? selectedTabColor : unSelectedTabColor,
                   ),
                 ),
               ],
@@ -77,7 +383,7 @@ class ProfileFooter extends StatelessWidget {
         ),
         Expanded(
           child: TabBarView(
-            controller: tabController,
+            controller: _tabController,
             children: [
               StaggeredGridView.countBuilder(
                 padding: const EdgeInsets.only(top: 2),
@@ -86,18 +392,18 @@ class ProfileFooter extends StatelessWidget {
                 crossAxisSpacing: 2,
                 itemBuilder: (ctx, index) {
                   return Container(
-                    child: Image.network(
-                      postsData[index].postUrl,
+                    color: Colors.grey[200],
+                    child: CachedNetworkImage(
+                      imageUrl: _userPosts[index].postUrl,
                       fit: BoxFit.cover,
                     ),
                   );
                 },
-                itemCount: postsData.length,
+                itemCount: _userPosts.length,
                 staggeredTileBuilder: (index) => StaggeredTile.count(1, 1),
               ),
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 6.0),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6.0),
                 child: StaggeredGridView.countBuilder(
                   crossAxisCount: 2,
                   crossAxisSpacing: 7,
@@ -115,10 +421,12 @@ class ProfileFooter extends StatelessWidget {
                         ),
                         Positioned(
                           child: Text(
-                            '100 Views',
+                            '100 views',
+                            textScaleFactor: 1,
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                           left: 14,
@@ -127,13 +435,14 @@ class ProfileFooter extends StatelessWidget {
                         Positioned(
                           child: Text(
                             'This is your reels',
+                            textScaleFactor: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                          bottom: 30,
+                          bottom: 24,
                           left: 14,
                           right: 14,
                         ),
@@ -150,166 +459,4 @@ class ProfileFooter extends StatelessWidget {
       ],
     );
   }
-}
-
-Widget editProfileButton() {
-  return SliverPadding(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    sliver: SliverToBoxAdapter(
-      child: ElevatedButton(
-        onPressed: () {},
-        style: ElevatedButton.styleFrom(
-          onPrimary: Colors.black,
-          primary: Colors.white,
-          elevation: 0,
-          alignment: Alignment.center,
-          side: BorderSide(color: Colors.grey[300]),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        child: Text('Edit Profile'),
-      ),
-    ),
-  );
-}
-
-Widget profileHeader() {
-  return SliverPadding(
-    padding: const EdgeInsets.only(left: 20, right: 20, top: 16),
-    sliver: SliverToBoxAdapter(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Column(
-            children: [
-              ProfileContainer(
-                user: dummyUser,
-                radius: 40,
-                hasUserStory: false,
-              ),
-              SizedBox(height: 4),
-              Text(
-                dummyUser.fullName,
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          Column(
-            children: [
-              Text(
-                '6',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 2),
-              Text(
-                'Posts',
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          Column(
-            children: [
-              Text(
-                '236',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 2),
-              Text(
-                'Followers',
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          Column(
-            children: [
-              Text(
-                '589',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 2),
-              Text(
-                'Following',
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget profileAppBar() {
-  return AppBar(
-    backgroundColor: Colors.white,
-    elevation: 0,
-    shape: Border(
-      bottom: BorderSide(
-        width: 0.1,
-        color: Colors.grey,
-      ),
-    ),
-    leading: IconButton(
-      visualDensity: VisualDensity.compact,
-      icon: Icon(
-        MdiIcons.lockOutline,
-        color: Colors.black,
-      ),
-      onPressed: () {},
-    ),
-    title: GestureDetector(
-      onTap: () {},
-      child: Row(
-        children: [
-          Text(
-            currentUser.userName,
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 20,
-            ),
-          ),
-          Icon(
-            Icons.expand_more_outlined,
-            color: Colors.black,
-          ),
-        ],
-      ),
-    ),
-    actions: [
-      IconButton(
-        icon: Icon(
-          Icons.add_box_outlined,
-          color: Colors.black,
-        ),
-        onPressed: () {},
-      ),
-      IconButton(
-        icon: Image.asset(
-          'assets/images/hamburger.png',
-          width: 20,
-          // color: Colors.grey[800],
-        ),
-        onPressed: () {},
-      ),
-    ],
-  );
 }

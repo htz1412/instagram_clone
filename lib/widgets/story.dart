@@ -8,8 +8,8 @@ class Story extends StatelessWidget {
     return Column(
       children: [
         Container(
-          height: 100,
-          color: Colors.white,
+          height: 105,
+          color: Color(0xfffffefe),
           child: ListView.builder(
             itemBuilder: (ctx, index) {
               return Column(
@@ -17,50 +17,57 @@ class Story extends StatelessWidget {
                 children: [
                   index == 0
                       ? Stack(
-                        children: [
-                          ProfileContainer(
-                            user: currentUser,
-                            radius: 32,
-                            hasUserStory: false,
-                            margin: const EdgeInsets.symmetric(horizontal: 6.0),
-                          ),
-                          Positioned(
-                            bottom: 4,
-                            right: 6,
-                            child: Container(
-                              width: 16,
-                              height: 16,
-                              decoration: BoxDecoration(
-                                color: Colors.blue,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white),
-                              ),
-                              child: Icon(
-                                Icons.add,
-                                color: Colors.white,
-                                size: 12,
+                          children: [
+                            ProfileContainer(
+                              user: currentUser,
+                              radius: 32,
+                              hasUserStory: false,
+                              margin: const EdgeInsets.only(
+                                left: 12.0,
+                                right: 8,
                               ),
                             ),
-                          )
-                        ],
-                      )
+                            Positioned(
+                              bottom: 4,
+                              right: 12,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white),
+                                ),
+                                child: Icon(
+                                  Icons.add,
+                                  color: Colors.white,
+                                  size: 15,
+                                ),
+                              ),
+                            )
+                          ],
+                        )
                       : ProfileContainer(
-                        user: stories[index - 1],
-                        radius: 32,
-                        hasUserStory: true,
-                        margin: const EdgeInsets.symmetric(horizontal: 6.0),
-                      ),
-                  SizedBox(height: 2),
+                          user: stories[index - 1],
+                          radius: 32,
+                          hasUserStory: true,
+                          margin: const EdgeInsets.symmetric(horizontal: 6.0),
+                        ),
+                  SizedBox(height: 6),
                   SizedBox(
                     width: 70,
                     child: Text(
                       index == 0 ? 'Your Story' : stories[index - 1].userName,
                       textAlign: TextAlign.center,
+                      textScaleFactor: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      style: Theme.of(context).textTheme.subtitle2.copyWith(
+                            fontSize: 12.5,
+                          ),
+                      // style: TextStyle(
+                      //   fontWeight: FontWeight.w500,
+                      //   fontSize: 12,
+                      //   letterSpacing: -0.2,
+                      //   color: Color(0xff1d1d1f),
+                      // ),
                     ),
                   ),
                 ],
