@@ -28,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _setupFeedPosts() async {
-    final postProvider = Provider.of<PostProvider>(context, listen: false);
+    final postProvider = Provider.of<PostProvider>(context,listen: false);
     _feedPosts = postProvider.feedPosts;
     _feedPostUsers = postProvider.feedPostUsers;
   }

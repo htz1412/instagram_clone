@@ -40,7 +40,8 @@ class DatabaseServices {
       },
     );
 
-    // Provider.of<PostProvider>(context, listen: false).addPost(post: post);
+    await Provider.of<PostProvider>(context, listen: false)
+        .fetchAndSetFeedPosts(currentUserId: post.authorId);
   }
 
   static Future<List<Post>> fetchUserPosts({String userId}) async {
@@ -57,11 +58,11 @@ class DatabaseServices {
     final QuerySnapshot<Map<String, dynamic>> followingDocs =
         await usersRef.doc(currentUserId).collection('following').get();
 
-    final List<String> followingList = [];
-    followingDocs.docs.map((user) => followingList.add(user.id)).toList();
-
     final List<Post> posts = [];
-    if (followingList.isNotEmpty) {
+    if (followingDocs.docs.isNotEmpty) {
+      final List<String> followingList = [];
+      followingDocs.docs.map((user) => followingList.add(user.id)).toList();
+
       final QuerySnapshot<Map<String, dynamic>> postsSnap =
           await postsRef.where('authorId', whereIn: followingList).get();
 
