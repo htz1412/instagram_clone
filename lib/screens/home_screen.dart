@@ -20,6 +20,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
+    final PostProvider postProvider = Provider.of<PostProvider>(context);
     return SafeArea(
       child: CustomScrollView(
         slivers: [
@@ -49,24 +50,22 @@ class _HomeScreenState extends State<HomeScreen> {
           SliverToBoxAdapter(
             child: Story(),
           ),
-          Consumer<PostProvider>(builder: (ctx, postProvider, _) {
-            List<Post> feedPosts = postProvider.feedPosts;
-            List<User> feedPostUsers = postProvider.feedPostUsers;
-            return SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (ctx, i) {
-                  String id = feedPosts[i].authorId;
-                  User user = feedPostUsers.singleWhere((user) => user.userId == id);
-                  return Posts(
-                    post: feedPosts[i],
-                    user: user,
-                    currentUserId: widget.currentUserId,
-                  );
-                },
-                childCount: feedPosts.length,
-              ),
-            );
-          }),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, i) {
+                Post post = postProvider.feedPosts[i];
+                User user =
+                    postProvider.feedPostUsers.firstWhere((user) => user.userId == post.authorId);
+
+                return Posts(
+                  post: post,
+                  user: user,
+                  currentUserId: widget.currentUserId,
+                );
+              },
+              childCount: postProvider.feedPosts.length,
+            ),
+          ),
         ],
       ),
     );

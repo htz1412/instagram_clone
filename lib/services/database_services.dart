@@ -74,11 +74,14 @@ class DatabaseServices {
   }
 
   static Future<List<User>> fetchFeedPostUsers({List<String> listOfUser}) async {
-    final QuerySnapshot<Map<String, dynamic>> usersSnap =
-        await usersRef.where(FieldPath.documentId, whereIn: listOfUser).get();
+    final QuerySnapshot<Map<String, dynamic>> usersSnap = await usersRef.get();
 
     final List<User> users = [];
-    usersSnap.docs.map((e) => users.add(User.fromDoc(e))).toList();
+    usersSnap.docs.forEach((user) {
+      if (listOfUser.contains(user.id)) {
+        users.add(User.fromDoc(user));
+      }
+    });
 
     return users;
   }

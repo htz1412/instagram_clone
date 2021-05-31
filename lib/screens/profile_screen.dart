@@ -84,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     });
   }
 
-  void _followOrUnfollow() {
+  void _followOrUnfollow() async {
     if (_isFollowing) {
       _unfollowUser();
     } else {
@@ -98,7 +98,6 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       currentUserId: widget.currentUserId,
       userId: widget.userId,
     );
-
     setState(() {
       _isFollowing = true;
       _followersCount++;

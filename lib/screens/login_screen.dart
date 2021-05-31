@@ -27,7 +27,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() async {
     final isValid = _formKey.currentState.validate();
-    var errorMessage;
     FocusScope.of(context).unfocus();
 
     if (isValid) {

@@ -62,10 +62,7 @@ class Posts extends StatelessWidget {
                           : Text(
                               post.location,
                               textScaleFactor: 1,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .subtitle2
-                                  .copyWith(
+                              style: Theme.of(context).textTheme.subtitle2.copyWith(
                                     fontSize: 12,
                                     color: Color(0xff262626),
                                   ),

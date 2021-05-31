@@ -107,8 +107,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         '+ Add a photo',
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
-                                          color: Colors.grey,
+                                          color: Colors.grey[400],
                                           fontSize: 14,
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       )
                                     : null,
@@ -126,12 +127,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   alignLabelWithHint: true,
                                   hintText: 'Email',
                                   hintStyle: TextStyle(
-                                    color: Colors.grey,
+                                    color: Colors.grey[400],
+                                    fontWeight: FontWeight.w500,
                                   ),
                                   prefixIcon: Icon(
                                     Icons.email_outlined,
-                                    color: Colors.grey,
+                                    color: Colors.grey[400],
                                   ),
+                                ),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
                                 ),
                                 keyboardType: TextInputType.emailAddress,
                                 textInputAction: TextInputAction.next,
@@ -156,12 +161,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   alignLabelWithHint: true,
                                   hintText: 'Username',
                                   hintStyle: TextStyle(
-                                    color: Colors.grey,
+                                    color: Colors.grey[400],
+                                    fontWeight: FontWeight.w500,
                                   ),
                                   prefixIcon: Icon(
                                     Icons.person,
-                                    color: Colors.grey,
+                                    color: Colors.grey[400],
                                   ),
+                                ),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
                                 ),
                                 keyboardType: TextInputType.text,
                                 textInputAction: TextInputAction.next,
@@ -186,12 +195,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   alignLabelWithHint: true,
                                   hintText: 'Password',
                                   hintStyle: TextStyle(
-                                    color: Colors.grey,
+                                    color: Colors.grey[400],
+                                    fontWeight: FontWeight.w500,
                                   ),
                                   prefixIcon: Icon(
                                     Icons.password,
-                                    color: Colors.grey,
+                                    color: Colors.grey[400],
                                   ),
+                                ),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
                                 ),
                                 keyboardType: TextInputType.text,
                                 textInputAction: TextInputAction.next,
@@ -215,13 +228,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   alignLabelWithHint: true,
                                   hintText: 'Confirm Password',
                                   hintStyle: TextStyle(
-                                    color: Colors.grey,
+                                    color: Colors.grey[400],
+                                    fontWeight: FontWeight.w500,
                                   ),
                                   prefixIcon: Icon(
                                     Icons.password,
-                                    color: Colors.grey,
+                                    color: Colors.grey[400],
                                   ),
                                 ),
+                                style: TextStyle(fontWeight: FontWeight.w500,),
                                 keyboardType: TextInputType.text,
                                 textInputAction: TextInputAction.done,
                                 validator: (value) {
@@ -266,7 +281,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               child: const Text(
                                 'Already have an account',
                                 style: TextStyle(
-                                  // letterSpacing: 0.25,
                                   fontSize: 15,
                                 ),
                               ),
