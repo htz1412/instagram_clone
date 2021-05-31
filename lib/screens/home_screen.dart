@@ -18,26 +18,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Post> _feedPosts = [];
-  List<User> _feedPostUsers = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _setupFeedPosts();
-  }
-
-  void _setupFeedPosts() async {
-    final postProvider = Provider.of<PostProvider>(context,listen: false);
-    _feedPosts = postProvider.feedPosts;
-    _feedPostUsers = postProvider.feedPostUsers;
-  }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: CustomScrollView(
-        physics: BouncingScrollPhysics(),
         slivers: [
           SliverAppBar(
             pinned: true,
@@ -65,20 +49,24 @@ class _HomeScreenState extends State<HomeScreen> {
           SliverToBoxAdapter(
             child: Story(),
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (ctx, i) {
-                String id = _feedPosts[i].authorId;
-                User user = _feedPostUsers.singleWhere((user) => user.userId == id);
-                return Posts(
-                  post: _feedPosts[i],
-                  user: user,
-                  currentUserId: widget.currentUserId,
-                );
-              },
-              childCount: _feedPosts.length,
-            ),
-          ),
+          Consumer<PostProvider>(builder: (ctx, postProvider, _) {
+            List<Post> feedPosts = postProvider.feedPosts;
+            List<User> feedPostUsers = postProvider.feedPostUsers;
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (ctx, i) {
+                  String id = feedPosts[i].authorId;
+                  User user = feedPostUsers.singleWhere((user) => user.userId == id);
+                  return Posts(
+                    post: feedPosts[i],
+                    user: user,
+                    currentUserId: widget.currentUserId,
+                  );
+                },
+                childCount: feedPosts.length,
+              ),
+            );
+          }),
         ],
       ),
     );

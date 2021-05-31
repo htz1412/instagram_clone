@@ -92,7 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     }
   }
 
-  void _followUser() async {
+  void _followUser() {
     DatabaseServices.followUser(
       context: context,
       currentUserId: widget.currentUserId,

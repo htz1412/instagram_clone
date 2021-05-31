@@ -23,11 +23,19 @@ class _SearchScreenState extends State<SearchScreen> {
   List<User> _allUsers = [];
   List<User> _foundedResults = [];
   bool _isLoading = false;
+  final TextEditingController _textEditingController = TextEditingController();
+  bool _isUserSearching = false;
 
   @override
   void initState() {
     super.initState();
     _fetchAllUsers();
+  }
+
+  @override
+  void dispose() {
+    _textEditingController.dispose();
+    super.dispose();
   }
 
   void _fetchAllUsers() async {
@@ -43,7 +51,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _searchResult(String searchText) {
     List<User> results = [];
-    if (searchText.isNotEmpty) {
+    if (searchText.trim().isNotEmpty) {
       results = _allUsers.where((user) {
         if (user.userId != widget.currentUserId &&
             user.userName.toLowerCase().startsWith(searchText.toLowerCase())) {
@@ -53,9 +61,16 @@ class _SearchScreenState extends State<SearchScreen> {
       }).toList();
     }
 
-    setState(() {
-      _foundedResults = results;
-    });
+    if (searchText != '') {
+      setState(() {
+        _foundedResults = results;
+        _isUserSearching = true;
+      });
+    } else {
+      setState(() {
+        _isUserSearching = false;
+      });
+    }
   }
 
   @override
@@ -86,6 +101,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: TextField(
+                  controller: _textEditingController,
                   onChanged: (text) => _searchResult(text),
                   textAlignVertical: TextAlignVertical.center,
                   cursorColor: Colors.grey[700],
@@ -110,51 +126,65 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
               ),
             ),
-            _foundedResults.length > 0
-                ? SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (ctx, index) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ListTile(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => ProfileScreen(
-                                        currentUserId: widget.currentUserId,
-                                        userId: _foundedResults[index].userId,
+            _isUserSearching
+                ? _foundedResults.isEmpty
+                    ? SliverFillRemaining(
+                        child: Center(
+                          child: Text(
+                            'No user found!',
+                            style: TextStyle(
+                              fontSize: 24,
+                              letterSpacing: 0.25,
+                              color: Colors.grey,
+                              // fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      )
+                    : SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (ctx, index) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ListTile(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => ProfileScreen(
+                                            currentUserId: widget.currentUserId,
+                                            userId: _foundedResults[index].userId,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    leading: CircleAvatar(
+                                      backgroundImage: CachedNetworkImageProvider(
+                                        _foundedResults[index].profileUrl,
+                                      ),
+                                      radius: 30,
+                                    ),
+                                    contentPadding: EdgeInsets.zero,
+                                    title: Text(
+                                      _foundedResults[index].userName,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xff262626),
                                       ),
                                     ),
-                                  );
-                                },
-                                leading: CircleAvatar(
-                                  backgroundImage: CachedNetworkImageProvider(
-                                    _foundedResults[index].profileUrl,
                                   ),
-                                  radius: 30,
-                                ),
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(
-                                  _foundedResults[index].userName,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xff262626),
-                                  ),
-                                ),
-                              ),
-                              Divider(),
-                            ],
-                          );
-                        },
-                        childCount: _foundedResults.length,
-                      ),
-                    ),
-                  )
+                                  Divider(),
+                                ],
+                              );
+                            },
+                            childCount: _foundedResults.length,
+                          ),
+                        ),
+                      )
                 : StreamBuilder(
                     stream: postsRef.orderBy('timeStamp', descending: false).snapshots(),
                     builder: (ctx, AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {

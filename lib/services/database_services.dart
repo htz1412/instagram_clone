@@ -88,7 +88,7 @@ class DatabaseServices {
 
     await usersRef.doc(userId).collection('followers').doc(currentUserId).set({});
 
-    Provider.of<PostProvider>(context, listen: false)
+    await Provider.of<PostProvider>(context, listen: false)
         .fetchAndSetFeedPosts(currentUserId: currentUserId);
   }
 
@@ -107,7 +107,7 @@ class DatabaseServices {
       await followersDoc.reference.delete();
     }
 
-    Provider.of<PostProvider>(context, listen: false)
+    await Provider.of<PostProvider>(context, listen: false)
         .fetchAndSetFeedPosts(currentUserId: currentUserId);
   }
 

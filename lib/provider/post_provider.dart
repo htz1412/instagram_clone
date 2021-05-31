@@ -26,7 +26,10 @@ class PostProvider with ChangeNotifier {
       final List<User> users = await DatabaseServices.fetchFeedPostUsers(listOfUser: usersList);
       _feedPosts = posts;
       _feedPostUsers = users;
-      notifyListeners();
+    } else {
+      _feedPosts.clear();
+      _feedPostUsers.clear();
     }
+    notifyListeners();
   }
 }
