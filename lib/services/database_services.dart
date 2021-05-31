@@ -91,8 +91,8 @@ class DatabaseServices {
 
     await usersRef.doc(userId).collection('followers').doc(currentUserId).set({});
 
-    await Provider.of<PostProvider>(context, listen: false)
-        .fetchAndSetFeedPosts(currentUserId: currentUserId);
+    // await Provider.of<PostProvider>(context, listen: false)
+    //     .fetchAndSetFeedPosts(currentUserId: currentUserId);
   }
 
   static void unfollowUser({BuildContext context, String currentUserId, String userId}) async {
@@ -110,8 +110,8 @@ class DatabaseServices {
       await followersDoc.reference.delete();
     }
 
-    await Provider.of<PostProvider>(context, listen: false)
-        .fetchAndSetFeedPosts(currentUserId: currentUserId);
+    // await Provider.of<PostProvider>(context, listen: false)
+    //     .fetchAndSetFeedPosts(currentUserId: currentUserId);
   }
 
   static Future<bool> isFollowing({String currentUserId, String userId}) async {
@@ -133,5 +133,23 @@ class DatabaseServices {
         await usersRef.doc(userId).collection('following').get();
 
     return snapshot.docs.length;
+  }
+
+  static void likePost({String currentUserId, String postId, Post post}) async {
+    await postsRef.doc(postId).collection('likedBy').doc(currentUserId).set({});
+  }
+
+  static void disLikePost({String currentUserId, String postId, Post post}) async {
+    final DocumentSnapshot<Map<String, dynamic>> doc =
+        await postsRef.doc(postId).collection('likedBy').doc(currentUserId).get();
+
+    if (doc.exists) {
+      await doc.reference.delete();
+    }
+  }
+
+  static Future<DocumentSnapshot<Map<String, dynamic>>> isPostLiked(
+      {String currentUserId, String postId, Post post}) {
+    return postsRef.doc(postId).collection('likedBy').doc(currentUserId).get();
   }
 }

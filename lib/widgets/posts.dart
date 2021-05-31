@@ -1,19 +1,49 @@
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:instagram_redesign/model/post.dart';
 import 'package:instagram_redesign/model/user.dart';
 import 'package:instagram_redesign/screens/profile_screen.dart';
+import 'package:instagram_redesign/services/database_services.dart';
 import 'package:instagram_redesign/widgets/profile_container.dart';
 
-class Posts extends StatelessWidget {
+class Posts extends StatefulWidget {
   final Post post;
   final User user;
   final String currentUserId;
 
   const Posts({this.post, this.user, this.currentUserId});
+
+  @override
+  _PostsState createState() => _PostsState();
+}
+
+class _PostsState extends State<Posts> {
+  var _isLiked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupIsLike();
+  }
+
+  void _setupIsLike() async {
+    DocumentSnapshot<Map<String, dynamic>> likeDoc = await DatabaseServices.isPostLiked(
+      currentUserId: widget.currentUserId,
+      post: widget.post,
+      postId: widget.post.postId,
+    );
+
+    if (likeDoc.exists) {
+      setState(() {
+        _isLiked = !_isLiked;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -26,7 +56,7 @@ class Posts extends StatelessWidget {
             child: Row(
               children: [
                 ProfileContainer(
-                  user: user,
+                  user: widget.user,
                   radius: 14,
                   hasUserStory: true,
                   margin: const EdgeInsets.symmetric(horizontal: 6.0),
@@ -38,8 +68,8 @@ class Posts extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (_) => ProfileScreen(
-                          currentUserId: currentUserId,
-                          userId: user.userId,
+                          currentUserId: widget.currentUserId,
+                          userId: widget.user.userId,
                         ),
                       ),
                     );
@@ -48,7 +78,7 @@ class Posts extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        user.userName,
+                        widget.user.userName,
                         textScaleFactor: 1,
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
@@ -57,10 +87,10 @@ class Posts extends StatelessWidget {
                           color: Color(0xff262626),
                         ),
                       ),
-                      post.location == ''
+                      widget.post.location == ''
                           ? SizedBox.shrink()
                           : Text(
-                              post.location,
+                              widget.post.location,
                               textScaleFactor: 1,
                               style: Theme.of(context).textTheme.subtitle2.copyWith(
                                     fontSize: 12,
@@ -98,7 +128,7 @@ class Posts extends StatelessWidget {
               ),
             ),
             child: CachedNetworkImage(
-              imageUrl: post.postUrl,
+              imageUrl: widget.post.postUrl,
               fit: BoxFit.cover,
             ),
           ),
@@ -111,11 +141,28 @@ class Posts extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: SvgPicture.asset(
-                        'assets/images/love_icon.svg',
+                        _isLiked
+                            ? 'assets/images/love_active_icon.svg'
+                            : 'assets/images/love_icon.svg',
                         width: 22,
-                        color: Color(0xff262626),
+                        color: _isLiked ? Colors.red[600]: Color(0xff262626),
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        _isLiked
+                            ? DatabaseServices.disLikePost(
+                                currentUserId: widget.currentUserId,
+                                post: widget.post,
+                                postId: widget.post.postId,
+                              )
+                            : DatabaseServices.likePost(
+                                currentUserId: widget.currentUserId,
+                                post: widget.post,
+                                postId: widget.post.postId,
+                              );
+                        setState(() {
+                          _isLiked = !_isLiked;
+                        });
+                      },
                       visualDensity: VisualDensity.compact,
                     ),
                     IconButton(
@@ -153,7 +200,7 @@ class Posts extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
-              '${post.likes} likes',
+              '${widget.post.likes} likes',
               textScaleFactor: 1,
               style: TextStyle(
                 fontWeight: FontWeight.w700,
@@ -163,7 +210,7 @@ class Posts extends StatelessWidget {
             ),
           ),
           SizedBox(height: 4),
-          post.caption.isEmpty
+          widget.post.caption.isEmpty
               ? SizedBox.shrink()
               : Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -174,7 +221,7 @@ class Posts extends StatelessWidget {
                       style: TextStyle(fontFamily: 'SFDisplay'),
                       children: [
                         TextSpan(
-                          text: '${user.userName}\t',
+                          text: '${widget.user.userName}\t',
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
                             color: Color(0xff262626),
@@ -182,7 +229,7 @@ class Posts extends StatelessWidget {
                           ),
                         ),
                         TextSpan(
-                          text: '${post.caption}',
+                          text: '${widget.post.caption}',
                           style: Theme.of(context).textTheme.subtitle2.copyWith(
                                 fontSize: 13.5,
                                 letterSpacing: 0.25,

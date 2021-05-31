@@ -1,10 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_redesign/model/post.dart';
 import 'package:instagram_redesign/model/user.dart';
-import 'package:instagram_redesign/provider/post_provider.dart';
+import 'package:instagram_redesign/services/database_services.dart';
+import 'package:instagram_redesign/utilities/constants.dart';
 import 'package:instagram_redesign/widgets/posts.dart';
 import 'package:instagram_redesign/widgets/story.dart';
-import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   static const routeName = 'home_screen';
@@ -18,9 +19,28 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final List<String> _followingIds = [];
+  final List<User> _feedPostUsers = [];
+
+  Future<void> fetchData() async {
+    final QuerySnapshot<Map<String, dynamic>> idDocs =
+        await usersRef.doc(widget.currentUserId).collection('following').get();
+
+    idDocs.docs.forEach((doc) {
+      _followingIds.add(doc.id);
+    });
+
+    final QuerySnapshot<Map<String, dynamic>> users = await usersRef.get();
+
+    users.docs.forEach((userDoc) {
+      if (_followingIds.contains(userDoc.id)) {
+        _feedPostUsers.add(User.fromDoc(userDoc));
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final PostProvider postProvider = Provider.of<PostProvider>(context);
     return SafeArea(
       child: CustomScrollView(
         slivers: [
@@ -50,21 +70,49 @@ class _HomeScreenState extends State<HomeScreen> {
           SliverToBoxAdapter(
             child: Story(),
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, i) {
-                Post post = postProvider.feedPosts[i];
-                User user =
-                    postProvider.feedPostUsers.firstWhere((user) => user.userId == post.authorId);
-
-                return Posts(
-                  post: post,
-                  user: user,
-                  currentUserId: widget.currentUserId,
+          FutureBuilder(
+            future: fetchData(),
+            builder: (ctx, AsyncSnapshot<void> snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.grey[300],
+                      strokeWidth: 2,
+                    ),
+                  ),
                 );
-              },
-              childCount: postProvider.feedPosts.length,
-            ),
+              }
+
+              return StreamBuilder(
+                  stream: postsRef.snapshots(),
+                  builder: (context, AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return SliverToBoxAdapter();
+                    }
+                    final List<Post> posts = [];
+                    snapshot.data.docs.forEach((postDoc) {
+                      if (_followingIds.contains(postDoc['authorId'])) {
+                        posts.add(Post.fromDoc(postDoc));
+                      }
+                    });
+
+                    return SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, i) {
+                          var index = _followingIds.indexOf(posts[i].authorId);
+
+                          return Posts(
+                            post: posts[i],
+                            user: _feedPostUsers[index],
+                            currentUserId: widget.currentUserId,
+                          );
+                        },
+                        childCount: posts.length,
+                      ),
+                    );
+                  });
+            },
           ),
         ],
       ),

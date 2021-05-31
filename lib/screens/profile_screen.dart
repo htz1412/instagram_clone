@@ -84,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     });
   }
 
-  void _followOrUnfollow() async {
+  void _followOrUnfollow() {
     if (_isFollowing) {
       _unfollowUser();
     } else {
