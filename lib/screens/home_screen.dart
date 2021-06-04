@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_redesign/model/post.dart';
 import 'package:instagram_redesign/model/user.dart';
-import 'package:instagram_redesign/services/database_services.dart';
 import 'package:instagram_redesign/utilities/constants.dart';
 import 'package:instagram_redesign/widgets/posts.dart';
 import 'package:instagram_redesign/widgets/story.dart';
@@ -85,33 +84,34 @@ class _HomeScreenState extends State<HomeScreen> {
               }
 
               return StreamBuilder(
-                  stream: postsRef.snapshots(),
-                  builder: (context, AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return SliverToBoxAdapter();
+                stream: postsRef.orderBy('timeStamp', descending: true).snapshots(),
+                builder: (context, AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return SliverToBoxAdapter();
+                  }
+                  final List<Post> posts = [];
+                  snapshot.data.docs.forEach((postDoc) {
+                    if (_followingIds.contains(postDoc['authorId'])) {
+                      posts.add(Post.fromDoc(postDoc));
                     }
-                    final List<Post> posts = [];
-                    snapshot.data.docs.forEach((postDoc) {
-                      if (_followingIds.contains(postDoc['authorId'])) {
-                        posts.add(Post.fromDoc(postDoc));
-                      }
-                    });
-
-                    return SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, i) {
-                          var index = _followingIds.indexOf(posts[i].authorId);
-
-                          return Posts(
-                            post: posts[i],
-                            user: _feedPostUsers[index],
-                            currentUserId: widget.currentUserId,
-                          );
-                        },
-                        childCount: posts.length,
-                      ),
-                    );
                   });
+
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, i) {
+                        var index = _followingIds.indexOf(posts[i].authorId);
+
+                        return Posts(
+                          post: posts[i],
+                          user: _feedPostUsers[index],
+                          currentUserId: widget.currentUserId,
+                        );
+                      },
+                      childCount: posts.length,
+                    ),
+                  );
+                },
+              );
             },
           ),
         ],
