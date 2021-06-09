@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:instagram_redesign/model/post.dart';
 import 'package:instagram_redesign/model/user.dart';
+import 'package:instagram_redesign/screens/comment_screen.dart';
 import 'package:instagram_redesign/screens/profile_screen.dart';
 import 'package:instagram_redesign/services/database_services.dart';
 import 'package:instagram_redesign/widgets/profile_container.dart';
@@ -145,7 +146,7 @@ class _PostsState extends State<Posts> {
                             ? 'assets/images/love_active_icon.svg'
                             : 'assets/images/love_icon.svg',
                         width: 22,
-                        color: _isLiked ? Colors.red[600]: Color(0xff262626),
+                        color: _isLiked ? Colors.red[600] : Color(0xff262626),
                       ),
                       onPressed: () {
                         _isLiked
@@ -172,7 +173,20 @@ class _PostsState extends State<Posts> {
                         color: Color(0xff262626),
                       ),
                       visualDensity: VisualDensity.compact,
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) {
+                              print(widget.user.userId);
+                              return CommentScreen(
+                                currentUser: widget.user,
+                                postId: widget.post.postId,
+                              );
+                            },
+                          ),
+                        );
+                      },
                     ),
                     IconButton(
                       icon: SvgPicture.asset(
