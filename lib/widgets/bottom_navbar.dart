@@ -31,10 +31,10 @@ class _BottomNavBarState extends State<BottomNavBar> {
         currentUserId: FirebaseAuth.instance.currentUser.uid,
       ),
     },
-    {
-      'title': 'follow',
-      'page': FollowScreen(),
-    },
+    // {
+    //   'title': 'follow',
+    //   'page': FollowScreen(),
+    // },
     {
       'title': 'profile',
       'page': ProfileScreen(
@@ -132,18 +132,18 @@ class _BottomNavBarState extends State<BottomNavBar> {
                   tooltip: 'Add Post',
                   label: '',
                 ),
-                BottomNavigationBarItem(
-                  activeIcon: Icon(
-                    MdiIcons.heart,
-                    size: 28,
-                  ),
-                  icon: Icon(
-                    MdiIcons.heartOutline,
-                    size: 28,
-                  ),
-                  tooltip: 'Notification',
-                  label: '',
-                ),
+                // BottomNavigationBarItem(
+                //   activeIcon: Icon(
+                //     MdiIcons.heart,
+                //     size: 28,
+                //   ),
+                //   icon: Icon(
+                //     MdiIcons.heartOutline,
+                //     size: 28,
+                //   ),
+                //   tooltip: 'Notification',
+                //   label: '',
+                // ),
                 BottomNavigationBarItem(
                   icon: CircleAvatar(
                     backgroundImage: CachedNetworkImageProvider(

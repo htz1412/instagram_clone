@@ -4,7 +4,6 @@ import 'package:instagram_redesign/model/post.dart';
 import 'package:instagram_redesign/model/user.dart';
 import 'package:instagram_redesign/utilities/constants.dart';
 import 'package:instagram_redesign/widgets/posts.dart';
-import 'package:instagram_redesign/widgets/story.dart';
 
 class HomeScreen extends StatefulWidget {
   static const routeName = 'home_screen';
@@ -48,14 +47,14 @@ class _HomeScreenState extends State<HomeScreen> {
             centerTitle: true,
             backgroundColor: Color(0xfffffefe),
             elevation: 0.5,
-            leading: IconButton(
-              icon: Icon(
-                Icons.camera_alt_outlined,
-                color: Color(0xff262626),
-                size: 26,
-              ),
-              onPressed: () {},
-            ),
+            // leading: IconButton(
+            //   icon: Icon(
+            //     Icons.camera_alt_outlined,
+            //     color: Color(0xff262626),
+            //     size: 26,
+            //   ),
+            //   onPressed: () {},
+            // ),
             title: Text(
               'Instagram',
               style: TextStyle(
@@ -66,9 +65,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          SliverToBoxAdapter(
-            child: Story(),
-          ),
+          // SliverToBoxAdapter(
+          //   child: Story(),
+          // ),
           FutureBuilder(
             future: fetchData(),
             builder: (ctx, AsyncSnapshot<void> snapshot) {

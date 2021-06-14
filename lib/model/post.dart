@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 
-class Post with ChangeNotifier {
+class Post {
   final String postId;
   final String authorId;
   final String location;

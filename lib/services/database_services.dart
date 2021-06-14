@@ -148,8 +148,18 @@ class DatabaseServices {
     }
   }
 
-  static Future<DocumentSnapshot<Map<String, dynamic>>> isPostLiked(
-      {String currentUserId, String postId, Post post}) {
-    return postsRef.doc(postId).collection('likedBy').doc(currentUserId).get();
+  static Future<bool> isPostLiked({String currentUserId, String postId}) async {
+    final doc = await postsRef.doc(postId).collection('likedBy').doc(currentUserId).get();
+    if (doc.exists) {
+      return true;
+    }
+
+    return false;
+  }
+
+  static Future<int> totalLikes({String postId}) async {
+    var likeDocs = await postsRef.doc(postId).collection('likedBy').get();
+
+    return likeDocs.docs.length;
   }
 }

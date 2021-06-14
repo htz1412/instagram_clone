@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:instagram_redesign/model/post.dart';
@@ -23,26 +22,35 @@ class Posts extends StatefulWidget {
 }
 
 class _PostsState extends State<Posts> {
-  var _isLiked = false;
+  bool _isLiked = false;
+  int _totalLikes = 0;
 
   @override
   void initState() {
     super.initState();
     _setupIsLike();
+    _setupTotalLikes();
   }
 
   void _setupIsLike() async {
-    DocumentSnapshot<Map<String, dynamic>> likeDoc = await DatabaseServices.isPostLiked(
+    var isLiked = await DatabaseServices.isPostLiked(
       currentUserId: widget.currentUserId,
-      post: widget.post,
+      // post: widget.post,
       postId: widget.post.postId,
     );
 
-    if (likeDoc.exists) {
+    if (isLiked) {
       setState(() {
-        _isLiked = !_isLiked;
+        _isLiked = true;
       });
     }
+  }
+
+  void _setupTotalLikes() async {
+    int likes = await DatabaseServices.totalLikes(postId: widget.post.postId);
+    setState(() {
+      _totalLikes = likes;
+    });
   }
 
   @override
@@ -138,83 +146,86 @@ class _PostsState extends State<Posts> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    IconButton(
-                      icon: SvgPicture.asset(
-                        _isLiked
-                            ? 'assets/images/love_active_icon.svg'
-                            : 'assets/images/love_icon.svg',
-                        width: 22,
-                        color: _isLiked ? Colors.red[600] : Color(0xff262626),
+                Expanded(
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: SvgPicture.asset(
+                          _isLiked
+                              ? 'assets/images/love_active_icon.svg'
+                              : 'assets/images/love_icon.svg',
+                          width: 22,
+                          color: _isLiked ? Colors.red[600] : Color(0xff262626),
+                        ),
+                        onPressed: () {
+                          _isLiked
+                              ? DatabaseServices.disLikePost(
+                                  currentUserId: widget.currentUserId,
+                                  post: widget.post,
+                                  postId: widget.post.postId,
+                                )
+                              : DatabaseServices.likePost(
+                                  currentUserId: widget.currentUserId,
+                                  post: widget.post,
+                                  postId: widget.post.postId,
+                                );
+                          setState(() {
+                            if (_isLiked) {
+                              _totalLikes -= 1;
+                            } else {
+                              _totalLikes += 1;
+                            }
+                            _isLiked = !_isLiked;
+                          });
+                        },
+                        visualDensity: VisualDensity.compact,
                       ),
-                      onPressed: () {
-                        _isLiked
-                            ? DatabaseServices.disLikePost(
-                                currentUserId: widget.currentUserId,
-                                post: widget.post,
+                      IconButton(
+                        icon: SvgPicture.asset(
+                          'assets/images/comment_icon.svg',
+                          width: 22,
+                          color: Color(0xff262626),
+                        ),
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => CommentScreen(
                                 postId: widget.post.postId,
-                              )
-                            : DatabaseServices.likePost(
-                                currentUserId: widget.currentUserId,
-                                post: widget.post,
-                                postId: widget.post.postId,
-                              );
-                        setState(() {
-                          _isLiked = !_isLiked;
-                        });
-                      },
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    IconButton(
-                      icon: SvgPicture.asset(
-                        'assets/images/comment_icon.svg',
-                        width: 22,
-                        color: Color(0xff262626),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) {
-                              print(widget.user.userId);
-                              return CommentScreen(
-                                currentUser: widget.user,
-                                postId: widget.post.postId,
-                              );
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: SvgPicture.asset(
-                        'assets/images/message_icon.svg',
-                        width: 26,
-                        color: Color(0xff262626),
-                      ),
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () {},
-                    ),
-                  ],
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.bookmark_border_outlined,
-                    size: 28,
-                    color: Color(0xff262626),
+                      // IconButton(
+                      //   icon: SvgPicture.asset(
+                      //     'assets/images/message_icon.svg',
+                      //     width: 26,
+                      //     color: Color(0xff262626),
+                      //   ),
+                      //   visualDensity: VisualDensity.compact,
+                      //   onPressed: () {},
+                      // ),
+                    ],
                   ),
-                  visualDensity: VisualDensity.compact,
-                  onPressed: () {},
                 ),
+                // IconButton(
+                //   icon: Icon(
+                //     Icons.bookmark_border_outlined,
+                //     size: 28,
+                //     color: Color(0xff262626),
+                //   ),
+                //   visualDensity: VisualDensity.compact,
+                //   onPressed: () {},
+                // ),
               ],
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
-              '${widget.post.likes} likes',
+              '${_totalLikes} likes',
               textScaleFactor: 1,
               style: TextStyle(
                 fontWeight: FontWeight.w700,
@@ -228,59 +239,67 @@ class _PostsState extends State<Posts> {
               ? SizedBox.shrink()
               : Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: RichText(
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    text: TextSpan(
-                      style: TextStyle(fontFamily: 'SFDisplay'),
-                      children: [
-                        TextSpan(
-                          text: '${widget.user.userName}\t',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xff262626),
-                            fontSize: 13.8,
-                          ),
+                  child: Text(
+                    '${widget.post.caption}',
+                    style: Theme.of(context).textTheme.subtitle2.copyWith(
+                          fontSize: 15,
+                          letterSpacing: 0.25,
+                          color: Color(0xff262626),
                         ),
-                        TextSpan(
-                          text: '${widget.post.caption}',
-                          style: Theme.of(context).textTheme.subtitle2.copyWith(
-                                fontSize: 13.5,
-                                letterSpacing: 0.25,
-                                color: Color(0xff262626),
-                              ),
-                        ),
-                      ],
-                    ),
                   ),
+                  // child: RichText(
+                  //   maxLines: 2,
+                  //   overflow: TextOverflow.ellipsis,
+                  //   text: TextSpan(
+                  //     style: TextStyle(fontFamily: 'SFDisplay'),
+                  //     children: [
+                  //       TextSpan(
+                  //         text: '${widget.user.userName}\t',
+                  //         style: TextStyle(
+                  //           fontWeight: FontWeight.w700,
+                  //           color: Color(0xff262626),
+                  //           fontSize: 13.8,
+                  //         ),
+                  //       ),
+                  //       TextSpan(
+                  //         text: '${widget.post.caption}',
+                  //         style: Theme.of(context).textTheme.subtitle2.copyWith(
+                  //               fontSize: 13.5,
+                  //               letterSpacing: 0.25,
+                  //               color: Color(0xff262626),
+                  //             ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
                 ),
-          SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: GestureDetector(
-              child: Text(
-                'View all 100 comments',
-                textScaleFactor: 1,
-                style: Theme.of(context).textTheme.subtitle2.copyWith(
-                      color: Color(0xff999999),
-                      fontSize: 13.8,
-                    ),
-              ),
-            ),
-          ),
-          SizedBox(height: 6),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              '1 hour ago',
-              textScaleFactor: 1,
-              style: Theme.of(context).textTheme.subtitle2.copyWith(
-                    color: Color(0xff999999),
-                    fontSize: 11.5,
-                  ),
-            ),
-          ),
-          SizedBox(height: 20),
+          // SizedBox(height: 4),
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          //   child: GestureDetector(
+          //     child: Text(
+          //       'View all 100 comments',
+          //       textScaleFactor: 1,
+          //       style: Theme.of(context).textTheme.subtitle2.copyWith(
+          //             color: Color(0xff999999),
+          //             fontSize: 13.8,
+          //           ),
+          //     ),
+          //   ),
+          // ),
+          // SizedBox(height: 6),
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          //   child: Text(
+          //     '1 hour ago',
+          //     textScaleFactor: 1,
+          //     style: Theme.of(context).textTheme.subtitle2.copyWith(
+          //           color: Color(0xff999999),
+          //           fontSize: 11.5,
+          //         ),
+          //   ),
+          // ),
+          SizedBox(height: 16),
         ],
       ),
     );

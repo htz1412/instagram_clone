@@ -5,7 +5,6 @@ import 'package:instagram_redesign/utilities/constants.dart';
 class CommentInput extends StatefulWidget {
   final String postId;
   final User currentUser;
-
   const CommentInput({this.postId, this.currentUser});
 
   @override
@@ -41,6 +40,7 @@ class _CommentInputState extends State<CommentInput> {
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(
           child: Container(
@@ -50,12 +50,17 @@ class _CommentInputState extends State<CommentInput> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: TextField(
+              maxLines: 5,
+              minLines: 1,
+              keyboardType: TextInputType.multiline,
               controller: _messageController,
               style: TextStyle(
                 color: Color(0xff262626),
                 fontWeight: FontWeight.w500,
               ),
               decoration: InputDecoration(
+                hintText: 'Write a comment...',
+                hintStyle: TextStyle(color: Colors.grey),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 border: InputBorder.none,
               ),
@@ -76,20 +81,8 @@ class _CommentInputState extends State<CommentInput> {
               Icons.send_rounded,
               color: Color(0xfffffefe),
             ),
-            // color: Colors.blue,
           ),
         ),
-        // GestureDetector(
-        //   onTap: _messageController.text.trim().isEmpty ? null : _sendMessage,
-        //   child: CircleAvatar(
-        //     backgroundColor: Colors.blue,
-        //     radius: 25,
-        //     child: Icon(
-        //       Icons.send_rounded,
-        //       color: Color(0xfffffefe),
-        //     ),
-        //   ),
-        // ),
       ],
     );
   }

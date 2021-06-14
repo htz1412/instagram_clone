@@ -5,6 +5,7 @@ import 'package:instagram_redesign/data.dart';
 import 'package:instagram_redesign/model/current_user.dart';
 import 'package:instagram_redesign/model/post.dart';
 import 'package:instagram_redesign/model/user.dart' as UserModel;
+import 'package:instagram_redesign/screens/connection_list_screen.dart';
 import 'package:instagram_redesign/services/auth_services.dart';
 import 'package:instagram_redesign/services/database_services.dart';
 import 'package:instagram_redesign/widgets/profile_container.dart';
@@ -130,27 +131,14 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         appBar: AppBar(
           backgroundColor: Color(0xfffffefe),
           elevation: 0.5,
-          title: Row(
-            children: [
-              Icon(
-                Icons.lock_outline_rounded,
-                color: Color(0xff262626),
-              ),
-              SizedBox(width: 2),
-              Text(
-                _user.userName,
-                textScaleFactor: 1,
-                style: TextStyle(
-                  color: Color(0xff262626),
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Icon(
-                Icons.expand_more_outlined,
-                color: Color(0xff262626),
-              ),
-            ],
+          title: Text(
+            _user.userName,
+            textScaleFactor: 1,
+            style: TextStyle(
+              color: Color(0xff262626),
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           actions: [
             IconButton(
@@ -174,7 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             headerSliverBuilder: (ctx, _) {
               return [
                 profileHeader(),
-                editProfileButton(context: context),
+                // editProfileButton(context: context),
               ];
             },
             body: postGrid(),
@@ -233,49 +221,69 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 ),
               ],
             ),
-            Column(
-              children: [
-                Text(
-                  '$_followersCount',
-                  textScaleFactor: 1,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xff262626),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ConnectionListScreen(connectinoId: 0, userId: widget.userId),
                   ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Followers',
-                  textScaleFactor: 1,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xff262626),
+                );
+              },
+              child: Column(
+                children: [
+                  Text(
+                    '$_followersCount',
+                    textScaleFactor: 1,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xff262626),
+                    ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 2),
+                  Text(
+                    'Followers',
+                    textScaleFactor: 1,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xff262626),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            Column(
-              children: [
-                Text(
-                  '$_followingCount',
-                  textScaleFactor: 1,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xff262626),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ConnectionListScreen(connectinoId: 1, userId: widget.userId),
                   ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Following',
-                  textScaleFactor: 1,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xff262626),
+                );
+              },
+              child: Column(
+                children: [
+                  Text(
+                    '$_followingCount',
+                    textScaleFactor: 1,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xff262626),
+                    ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 2),
+                  Text(
+                    'Following',
+                    textScaleFactor: 1,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xff262626),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -342,120 +350,162 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   }
 
   Widget postGrid() {
-    final Color selectedTabColor = Color(0xff262626);
-    final Color unSelectedTabColor = Color(0xff999999);
-
-    return Column(
-      children: [
-        SizedBox(
-          height: 50,
-          child: AppBar(
-            elevation: 0,
-            shape: Border(
-              bottom: BorderSide(color: Colors.grey, width: 0.4),
+    return Padding(
+      padding: const EdgeInsets.only(top: 20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: Text(
+              'Your Posts',
+              style: TextStyle(
+                color: Color(0xff262626),
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            backgroundColor: Color(0xfffffefe),
-            bottom: TabBar(
-              onTap: (index) {
-                setState(() {});
+          ),
+          SizedBox(height: 20),
+          Expanded(
+            child: StaggeredGridView.countBuilder(
+              padding: const EdgeInsets.only(top: 2),
+              crossAxisCount: 3,
+              mainAxisSpacing: 2,
+              crossAxisSpacing: 2,
+              itemBuilder: (ctx, index) {
+                return Container(
+                  color: Colors.grey[200],
+                  child: CachedNetworkImage(
+                    imageUrl: _userPosts[index].postUrl,
+                    fit: BoxFit.cover,
+                  ),
+                );
               },
-              controller: _tabController,
-              indicatorColor: Colors.black,
-              tabs: [
-                Tab(
-                  icon: Icon(
-                    Icons.table_chart_outlined,
-                    color: _tabController.index == 0 ? selectedTabColor : unSelectedTabColor,
-                  ),
-                ),
-                Tab(
-                  icon: Image.asset(
-                    'assets/images/instagram-reels.png',
-                    width: 22,
-                    height: 22,
-                    color: _tabController.index == 1 ? selectedTabColor : unSelectedTabColor,
-                  ),
-                ),
-              ],
+              itemCount: _userPosts.length,
+              staggeredTileBuilder: (index) => StaggeredTile.count(1, 1),
             ),
           ),
-        ),
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              StaggeredGridView.countBuilder(
-                padding: const EdgeInsets.only(top: 2),
-                crossAxisCount: 3,
-                mainAxisSpacing: 2,
-                crossAxisSpacing: 2,
-                itemBuilder: (ctx, index) {
-                  return Container(
-                    color: Colors.grey[200],
-                    child: CachedNetworkImage(
-                      imageUrl: _userPosts[index].postUrl,
-                      fit: BoxFit.cover,
-                    ),
-                  );
-                },
-                itemCount: _userPosts.length,
-                staggeredTileBuilder: (index) => StaggeredTile.count(1, 1),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6.0),
-                child: StaggeredGridView.countBuilder(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 7,
-                  mainAxisSpacing: 7,
-                  itemBuilder: (ctx, index) {
-                    return Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        ClipRRect(
-                          child: Image.network(
-                            postsData[index].postUrl,
-                            fit: BoxFit.cover,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        Positioned(
-                          child: Text(
-                            '100 views',
-                            textScaleFactor: 1,
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          left: 14,
-                          bottom: 8,
-                        ),
-                        Positioned(
-                          child: Text(
-                            'This is your reels',
-                            textScaleFactor: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          bottom: 24,
-                          left: 14,
-                          right: 14,
-                        ),
-                      ],
-                    );
-                  },
-                  itemCount: postsData.length,
-                  staggeredTileBuilder: (index) => StaggeredTile.extent(1, 280),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
+
+  // Widget postGrid() {
+  //   final Color selectedTabColor = Color(0xff262626);
+  //   final Color unSelectedTabColor = Color(0xff999999);
+
+  //   return Column(
+  //     children: [
+  //       SizedBox(
+  //         height: 50,
+  //         child: AppBar(
+  //           elevation: 0,
+  //           shape: Border(
+  //             bottom: BorderSide(color: Colors.grey, width: 0.4),
+  //           ),
+  //           backgroundColor: Color(0xfffffefe),
+  //           bottom: TabBar(
+  //             onTap: (index) {
+  //               setState(() {});
+  //             },
+  //             controller: _tabController,
+  //             indicatorColor: Colors.black,
+  //             tabs: [
+  //               Tab(
+  //                 icon: Icon(
+  //                   Icons.table_chart_outlined,
+  //                   color: _tabController.index == 0 ? selectedTabColor : unSelectedTabColor,
+  //                 ),
+  //               ),
+  //               Tab(
+  //                 icon: Image.asset(
+  //                   'assets/images/instagram-reels.png',
+  //                   width: 22,
+  //                   height: 22,
+  //                   color: _tabController.index == 1 ? selectedTabColor : unSelectedTabColor,
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //       Expanded(
+  //         child: TabBarView(
+  //           controller: _tabController,
+  //           children: [
+  //             StaggeredGridView.countBuilder(
+  //               padding: const EdgeInsets.only(top: 2),
+  //               crossAxisCount: 3,
+  //               mainAxisSpacing: 2,
+  //               crossAxisSpacing: 2,
+  //               itemBuilder: (ctx, index) {
+  //                 return Container(
+  //                   color: Colors.grey[200],
+  //                   child: CachedNetworkImage(
+  //                     imageUrl: _userPosts[index].postUrl,
+  //                     fit: BoxFit.cover,
+  //                   ),
+  //                 );
+  //               },
+  //               itemCount: _userPosts.length,
+  //               staggeredTileBuilder: (index) => StaggeredTile.count(1, 1),
+  //             ),
+  //             Padding(
+  //               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6.0),
+  //               child: StaggeredGridView.countBuilder(
+  //                 crossAxisCount: 2,
+  //                 crossAxisSpacing: 7,
+  //                 mainAxisSpacing: 7,
+  //                 itemBuilder: (ctx, index) {
+  //                   return Stack(
+  //                     fit: StackFit.expand,
+  //                     children: [
+  //                       ClipRRect(
+  //                         child: Image.network(
+  //                           postsData[index].postUrl,
+  //                           fit: BoxFit.cover,
+  //                         ),
+  //                         borderRadius: BorderRadius.circular(20),
+  //                       ),
+  //                       Positioned(
+  //                         child: Text(
+  //                           '100 views',
+  //                           textScaleFactor: 1,
+  //                           style: TextStyle(
+  //                             color: Colors.white.withOpacity(0.8),
+  //                             fontSize: 12,
+  //                             fontWeight: FontWeight.w500,
+  //                           ),
+  //                         ),
+  //                         left: 14,
+  //                         bottom: 8,
+  //                       ),
+  //                       Positioned(
+  //                         child: Text(
+  //                           'This is your reels',
+  //                           textScaleFactor: 1,
+  //                           overflow: TextOverflow.ellipsis,
+  //                           style: TextStyle(
+  //                             color: Colors.white,
+  //                             fontWeight: FontWeight.w500,
+  //                           ),
+  //                         ),
+  //                         bottom: 24,
+  //                         left: 14,
+  //                         right: 14,
+  //                       ),
+  //                     ],
+  //                   );
+  //                 },
+  //                 itemCount: postsData.length,
+  //                 staggeredTileBuilder: (index) => StaggeredTile.extent(1, 280),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 }
