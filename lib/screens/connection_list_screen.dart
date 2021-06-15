@@ -4,9 +4,9 @@ import 'package:instagram_redesign/model/user.dart';
 import 'package:instagram_redesign/utilities/constants.dart';
 
 class ConnectionListScreen extends StatefulWidget {
-  final int connectinoId;
+  final int connectionId;
   final String userId;
-  const ConnectionListScreen({this.connectinoId, this.userId});
+  const ConnectionListScreen({this.connectionId, this.userId});
 
   @override
   _ConnectionListScreenState createState() => _ConnectionListScreenState();
@@ -16,7 +16,7 @@ class _ConnectionListScreenState extends State<ConnectionListScreen> {
   List<User> users = [];
 
   Future<void> _fetchConnectinos() async {
-    String collectionName = widget.connectinoId == 0 ? 'followers' : 'following';
+    String collectionName = widget.connectionId == 0 ? 'followers' : 'following';
     final List<String> userIds = [];
     var userIdsDoc = await usersRef.doc(widget.userId).collection(collectionName).get();
     userIdsDoc.docs.forEach((doc) {
@@ -38,7 +38,7 @@ class _ConnectionListScreenState extends State<ConnectionListScreen> {
             SliverAppBar(
               backgroundColor: Color(0xfffffefe),
               title: Text(
-                widget.connectinoId == 0 ? 'Followers' : 'Following',
+                widget.connectionId == 0 ? 'Followers' : 'Following',
                 style: TextStyle(
                   color: Color(0xff262626),
                   fontSize: 22,
@@ -56,10 +56,25 @@ class _ConnectionListScreenState extends State<ConnectionListScreen> {
                     ),
                   );
                 }
+                if (users.isEmpty) {
+                  String connectionText = widget.connectionId == 0 ? 'Followers' : 'Following';
+                  return SliverFillRemaining(
+                    child: Center(
+                      child: Text(
+                        'No $connectionText',
+                        style: TextStyle(
+                          fontSize: 22,
+                          color: Colors.grey[400],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  );
+                }
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (ctx, index) => ListTile(
-                      contentPadding: const EdgeInsets.symmetric(vertical: 4,horizontal: 14),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 14),
                       title: Text(
                         users[index].userName,
                         style: TextStyle(

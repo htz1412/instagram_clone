@@ -21,20 +21,22 @@ class _CommentInputState extends State<CommentInput> {
   }
 
   void _sendMessage() async {
-    final String message = _messageController.text;
+    if (_messageController.text.trim().isNotEmpty) {
+      final String message = _messageController.text;
 
-    setState(() {
-      _messageController.clear();
-    });
+      setState(() {
+        _messageController.clear();
+      });
 
-    await commentsRef.doc(widget.postId).set({});
-    await commentsRef.doc(widget.postId).collection('userComments').add({
-      'userId': widget.currentUser.userId,
-      'message': message,
-      'timeStamp': DateTime.now(),
-      'profileUrl': widget.currentUser.profileUrl,
-      'userName': widget.currentUser.userName,
-    });
+      await commentsRef.doc(widget.postId).set({});
+      await commentsRef.doc(widget.postId).collection('userComments').add({
+        'userId': widget.currentUser.userId,
+        'message': message,
+        'timeStamp': DateTime.now(),
+        'profileUrl': widget.currentUser.profileUrl,
+        'userName': widget.currentUser.userName,
+      });
+    }
   }
 
   @override

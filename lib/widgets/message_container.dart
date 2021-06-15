@@ -85,7 +85,7 @@ class MessageContainer extends StatelessWidget {
                           data[index]['message'],
                           style: TextStyle(
                             color: Color(0xff212121),
-                            fontSize: 18,
+                            fontSize: 17,
                             fontWeight: FontWeight.w500,
                           ),
                         ),

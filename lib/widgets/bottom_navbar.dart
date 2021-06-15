@@ -1,9 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:instagram_redesign/data.dart';
 import 'package:instagram_redesign/provider/post_provider.dart';
-import 'package:instagram_redesign/screens/notification_screen.dart';
 import 'package:instagram_redesign/screens/home_screen.dart';
 import 'package:instagram_redesign/screens/profile_screen.dart';
 import 'package:instagram_redesign/screens/add_post_screen.dart';
@@ -145,11 +142,9 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 //   label: '',
                 // ),
                 BottomNavigationBarItem(
-                  icon: CircleAvatar(
-                    backgroundImage: CachedNetworkImageProvider(
-                      currentUser.profileUrl,
-                    ),
-                    radius: 15,
+                  icon: Icon(
+                    Icons.person,
+                    size: 26,
                   ),
                   tooltip: 'Profile',
                   label: '',

@@ -82,6 +82,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               }
 
+              if (_followingIds.isEmpty) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: Text(
+                      'No feed yet.',
+                      style: TextStyle(
+                        fontSize: 22,
+                        color: Colors.grey[400],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                );
+              }
               return StreamBuilder(
                 stream: postsRef.orderBy('timeStamp', descending: true).snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {

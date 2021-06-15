@@ -48,9 +48,11 @@ class _PostsState extends State<Posts> {
 
   void _setupTotalLikes() async {
     int likes = await DatabaseServices.totalLikes(postId: widget.post.postId);
-    setState(() {
-      _totalLikes = likes;
-    });
+    if (mounted) {
+      setState(() {
+        _totalLikes = likes;
+      });
+    }
   }
 
   @override
@@ -225,7 +227,7 @@ class _PostsState extends State<Posts> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
-              '${_totalLikes} likes',
+              '$_totalLikes likes',
               textScaleFactor: 1,
               style: TextStyle(
                 fontWeight: FontWeight.w700,

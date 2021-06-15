@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:instagram_redesign/data.dart';
 import 'package:instagram_redesign/model/current_user.dart';
 import 'package:instagram_redesign/model/post.dart';
 import 'package:instagram_redesign/model/user.dart' as UserModel;
@@ -162,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             headerSliverBuilder: (ctx, _) {
               return [
                 profileHeader(),
-                // editProfileButton(context: context),
+                editProfileButton(context: context),
               ];
             },
             body: postGrid(),
@@ -226,7 +225,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ConnectionListScreen(connectinoId: 0, userId: widget.userId),
+                    builder: (_) => ConnectionListScreen(connectionId: 0, userId: widget.userId),
                   ),
                 );
               },
@@ -258,7 +257,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ConnectionListScreen(connectinoId: 1, userId: widget.userId),
+                    builder: (_) => ConnectionListScreen(connectionId: 1, userId: widget.userId),
                   ),
                 );
               },
@@ -299,28 +298,29 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       sliver: SliverToBoxAdapter(
         child: _user.userId == currentUserId
-            ? ElevatedButton(
-                onPressed: _editProfile,
-                style: ElevatedButton.styleFrom(
-                  onPrimary: Color(0xff262626),
-                  primary: Color(0xfffffefe),
-                  elevation: 0,
-                  alignment: Alignment.center,
-                  side: BorderSide(
-                    color: Color(0xffdcdcdc),
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                child: Text(
-                  'Edit Profile',
-                  textScaleFactor: 1,
-                  style: Theme.of(context).textTheme.button.copyWith(
-                        color: Color(0xff262626),
-                      ),
-                ),
-              )
+            ? SizedBox.shrink()
+            // ? ElevatedButton(
+            //     onPressed: _editProfile,
+            //     style: ElevatedButton.styleFrom(
+            //       onPrimary: Color(0xff262626),
+            //       primary: Color(0xfffffefe),
+            //       elevation: 0,
+            //       alignment: Alignment.center,
+            //       side: BorderSide(
+            //         color: Color(0xffdcdcdc),
+            //       ),
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(4),
+            //       ),
+            //     ),
+            //     child: Text(
+            //       'Edit Profile',
+            //       textScaleFactor: 1,
+            //       style: Theme.of(context).textTheme.button.copyWith(
+            //             color: Color(0xff262626),
+            //           ),
+            //     ),
+            //   )
             : ElevatedButton(
                 onPressed: _followOrUnfollow,
                 style: ElevatedButton.styleFrom(
@@ -355,17 +355,19 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Text(
-              'Your Posts',
-              style: TextStyle(
-                color: Color(0xff262626),
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
+          _userPosts.isEmpty
+              ? SizedBox.shrink()
+              : Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Text(
+                    'Your Posts',
+                    style: TextStyle(
+                      color: Color(0xff262626),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
           SizedBox(height: 20),
           Expanded(
             child: StaggeredGridView.countBuilder(
